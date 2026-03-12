@@ -1,0 +1,83 @@
+.layout {
+  display: flex;
+  min-height: 100vh;
+  align-items: flex-start;
+}
+
+.feed {
+  flex: 1;
+  min-width: 0;
+  padding: 32px 24px 80px;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.feedTitle {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 24px;
+}
+
+.postList {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.empty {
+  text-align: center;
+  padding: 48px 24px;
+  color: var(--text-tertiary);
+  font-size: 15px;
+}
+
+.emptyIcon {
+  font-size: 40px;
+  margin-bottom: 12px;
+}
+
+/* Skeleton */
+.skeletonCard {
+  background: var(--bg-card);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+}
+
+.skeletonMedia {
+  width: 100%;
+  height: 240px;
+}
+
+.skeletonBody {
+  padding: 16px 20px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.skeletonLine {
+  height: 14px;
+  border-radius: 7px;
+}
+
+.skeletonLine.short {
+  width: 40%;
+}
+
+.skeletonLine.medium {
+  width: 70%;
+}
+
+/* Chat panel hidden on mobile via its own CSS */
+@media (max-width: 768px) {
+  .feed {
+    padding: 20px 16px 80px;
+  }
+
+  .feedTitle {
+    font-size: 20px;
+    margin-bottom: 16px;
+  }
+}

@@ -1,0 +1,24 @@
+:root {
+  --bg-primary: #F9FAFB;
+  --bg-card: #FFFFFF;
+  --bg-secondary: #F2F4F6;
+  --text-primary: #191F28;
+  --text-secondary: #8B95A1;
+  --text-tertiary: #B0B8C1;
+  --accent: #52B4D8;
+  --accent-light: #EAF6FB;
+  --border: #E5E8EB;
+  --danger: #F04452;
+
+  --radius-card: 16px;
+  --radius-inner: 8px;
+  --radius-btn: 12px;
+  --radius-bubble: 18px;
+
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.06);
+
+  --font-family: -apple-system, 'Pretendard', BlinkMacSystemFont, 'Segoe UI', sans-serif;
+
+  --sidebar-width: 260px;
+  --chat-width: 300px;
+}
