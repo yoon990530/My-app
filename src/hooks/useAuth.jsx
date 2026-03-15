@@ -1,16 +1,9 @@
 import { useState, useEffect, createContext, useContext } from 'react';
-import {
-  onAuthStateChanged,
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
-  signOut,
-  updateProfile,
-} from 'firebase/auth';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
-import { auth, db } from '../lib/firebase';
-import { validateInviteCode, joinCouple } from '../lib/inviteCode';
 
 const AuthContext = createContext(null);
+
+const MOCK_USER_KEY = 'mock_user';
+const MOCK_COUPLE_ID = 'demo-couple';
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
@@ -18,49 +11,42 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, async (firebaseUser) => {
-      if (firebaseUser) {
-        setUser(firebaseUser);
-        const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
-        setCoupleId(userDoc.exists() ? userDoc.data().coupleId : null);
-      } else {
-        setUser(null);
-        setCoupleId(null);
-      }
-      setLoading(false);
-    });
-    return unsub;
+    const stored = localStorage.getItem(MOCK_USER_KEY);
+    if (stored) {
+      setUser(JSON.parse(stored));
+      setCoupleId(MOCK_COUPLE_ID);
+    }
+    setLoading(false);
   }, []);
 
-  async function signUp({ email, password, displayName, inviteCode }) {
-    const codeData = await validateInviteCode(inviteCode);
-    if (!codeData) throw new Error('유효하지 않은 초대 코드입니다.');
-
-    const { user: newUser } = await createUserWithEmailAndPassword(auth, email, password);
-    await updateProfile(newUser, { displayName });
-
-    const couple = await joinCouple(codeData.coupleId, newUser.uid);
-
-    await setDoc(doc(db, 'users', newUser.uid), {
-      displayName,
+  async function signIn({ email }) {
+    const mockUser = {
+      uid: 'user1',
       email,
-      coupleId: couple.id,
-      createdAt: new Date(),
-    });
-
-    setCoupleId(couple.id);
-    return newUser;
+      displayName: email.split('@')[0],
+    };
+    localStorage.setItem(MOCK_USER_KEY, JSON.stringify(mockUser));
+    setUser(mockUser);
+    setCoupleId(MOCK_COUPLE_ID);
+    return mockUser;
   }
 
-  async function signIn({ email, password }) {
-    const { user: signedUser } = await signInWithEmailAndPassword(auth, email, password);
-    const userDoc = await getDoc(doc(db, 'users', signedUser.uid));
-    setCoupleId(userDoc.exists() ? userDoc.data().coupleId : null);
-    return signedUser;
+  async function signUp({ email, displayName }) {
+    const mockUser = {
+      uid: 'user1',
+      email,
+      displayName: displayName || email.split('@')[0],
+    };
+    localStorage.setItem(MOCK_USER_KEY, JSON.stringify(mockUser));
+    setUser(mockUser);
+    setCoupleId(MOCK_COUPLE_ID);
+    return mockUser;
   }
 
   async function logOut() {
-    await signOut(auth);
+    localStorage.removeItem(MOCK_USER_KEY);
+    setUser(null);
+    setCoupleId(null);
   }
 
   return (
