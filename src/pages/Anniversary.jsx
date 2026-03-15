@@ -1,20 +1,23 @@
 import { useState, useEffect } from 'react';
-import {
-  doc,
-  getDoc,
-  updateDoc,
-  collection,
-  onSnapshot,
-  addDoc,
-  deleteDoc,
-  query,
-  orderBy,
-} from 'firebase/firestore';
-import { db } from '../lib/firebase';
 import { useAuth } from '../hooks/useAuth';
 import DdayWidget from '../components/Anniversary/DdayWidget';
 import AnniversaryBanner from '../components/Anniversary/AnniversaryBanner';
 import styles from './Anniversary.module.css';
+
+const START_DATE_KEY = 'mock_start_date';
+const ANNIVERSARIES_KEY = 'mock_anniversaries';
+
+const INITIAL_ANNIVERSARIES = [
+  { id: 'ann1', name: '처음 만난 날', date: '2023-03-15', type: 'first_met', repeat: true },
+  { id: 'ann2', name: '생일', date: '1999-07-20', type: 'birthday', repeat: true },
+];
+
+function loadAnniversaries() {
+  const stored = localStorage.getItem(ANNIVERSARIES_KEY);
+  if (stored) return JSON.parse(stored);
+  localStorage.setItem(ANNIVERSARIES_KEY, JSON.stringify(INITIAL_ANNIVERSARIES));
+  return INITIAL_ANNIVERSARIES;
+}
 
 export default function Anniversary() {
   const { coupleId } = useAuth();
@@ -25,29 +28,15 @@ export default function Anniversary() {
   const [form, setForm] = useState({ name: '', date: '', type: 'anniversary', repeat: true });
   const [adding, setAdding] = useState(false);
 
-  // Load couple start date
   useEffect(() => {
     if (!coupleId) return;
-    getDoc(doc(db, 'couples', coupleId)).then((snap) => {
-      if (snap.exists()) setStartDate(snap.data().startDate || '');
-    });
-  }, [coupleId]);
-
-  // Load anniversaries
-  useEffect(() => {
-    if (!coupleId) return;
-    const q = query(
-      collection(db, 'couples', coupleId, 'anniversaries'),
-      orderBy('date', 'asc')
-    );
-    return onSnapshot(q, (snap) => {
-      setAnniversaries(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
-    });
+    setStartDate(localStorage.getItem(START_DATE_KEY) || '');
+    setAnniversaries(loadAnniversaries());
   }, [coupleId]);
 
   async function saveStartDate() {
     if (!tempDate) return;
-    await updateDoc(doc(db, 'couples', coupleId), { startDate: tempDate });
+    localStorage.setItem(START_DATE_KEY, tempDate);
     setStartDate(tempDate);
     setShowDateModal(false);
   }
@@ -57,11 +46,17 @@ export default function Anniversary() {
     if (!form.name || !form.date) return;
     setAdding(true);
     try {
-      await addDoc(collection(db, 'couples', coupleId, 'anniversaries'), {
+      const newItem = {
+        id: `ann_${Date.now()}`,
         name: form.name,
         date: form.date,
         type: form.type,
         repeat: form.repeat,
+      };
+      setAnniversaries((prev) => {
+        const updated = [...prev, newItem].sort((a, b) => a.date.localeCompare(b.date));
+        localStorage.setItem(ANNIVERSARIES_KEY, JSON.stringify(updated));
+        return updated;
       });
       setForm({ name: '', date: '', type: 'anniversary', repeat: true });
     } finally {
@@ -70,7 +65,11 @@ export default function Anniversary() {
   }
 
   async function handleDelete(id) {
-    await deleteDoc(doc(db, 'couples', coupleId, 'anniversaries', id));
+    setAnniversaries((prev) => {
+      const updated = prev.filter((a) => a.id !== id);
+      localStorage.setItem(ANNIVERSARIES_KEY, JSON.stringify(updated));
+      return updated;
+    });
   }
 
   return (

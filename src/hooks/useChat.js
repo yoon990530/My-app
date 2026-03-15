@@ -1,49 +1,71 @@
 import { useState, useEffect } from 'react';
-import {
-  collection,
-  query,
-  orderBy,
-  onSnapshot,
-  addDoc,
-  serverTimestamp,
-} from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { db, storage } from '../lib/firebase';
 import { useAuth } from './useAuth';
 
+const CHAT_KEY = 'mock_messages';
+
+const INITIAL_MESSAGES = [
+  {
+    id: 'msg1',
+    senderId: 'user2',
+    senderName: '상대방',
+    text: '안녕! 오늘 뭐해? 😊',
+    imageUrl: null,
+    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
+  },
+  {
+    id: 'msg2',
+    senderId: 'user1',
+    senderName: '나',
+    text: '집에서 쉬고 있어~ 너는?',
+    imageUrl: null,
+    createdAt: new Date(Date.now() - 1000 * 60 * 60).toISOString(),
+  },
+  {
+    id: 'msg3',
+    senderId: 'user2',
+    senderName: '상대방',
+    text: '나도! 오늘 같이 영화 볼까? 🎬',
+    imageUrl: null,
+    createdAt: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
+  },
+];
+
+function loadMessages() {
+  const stored = localStorage.getItem(CHAT_KEY);
+  if (stored) return JSON.parse(stored);
+  localStorage.setItem(CHAT_KEY, JSON.stringify(INITIAL_MESSAGES));
+  return INITIAL_MESSAGES;
+}
+
 export function useChat() {
-  const { user, coupleId } = useAuth();
+  const { user } = useAuth();
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!coupleId) return;
-    const q = query(
-      collection(db, 'couples', coupleId, 'messages'),
-      orderBy('createdAt', 'asc')
-    );
-    const unsub = onSnapshot(q, (snap) => {
-      setMessages(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
-      setLoading(false);
-    });
-    return unsub;
-  }, [coupleId]);
+    setMessages(loadMessages());
+    setLoading(false);
+  }, []);
 
   async function sendMessage({ text, file }) {
     let imageUrl = null;
     if (file) {
-      const path = `couples/${coupleId}/chat/${Date.now()}_${file.name}`;
-      const storageRef = ref(storage, path);
-      await uploadBytes(storageRef, file);
-      imageUrl = await getDownloadURL(storageRef);
+      imageUrl = URL.createObjectURL(file);
     }
 
-    await addDoc(collection(db, 'couples', coupleId, 'messages'), {
+    const newMsg = {
+      id: `msg_${Date.now()}`,
       senderId: user.uid,
       senderName: user.displayName,
       text: text || '',
       imageUrl,
-      createdAt: serverTimestamp(),
+      createdAt: new Date().toISOString(),
+    };
+
+    setMessages((prev) => {
+      const updated = [...prev, newMsg];
+      localStorage.setItem(CHAT_KEY, JSON.stringify(updated));
+      return updated;
     });
   }
 
