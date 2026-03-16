@@ -3,6 +3,7 @@ import styles from './BottomTab.module.css';
 
 const TABS = [
   { to: '/', icon: '🏠', label: '홈' },
+  { to: '/stock-news', icon: '📈', label: '주식' },
   { to: '/chat', icon: '💬', label: '채팅' },
   { to: '/anniversary', icon: '🎂', label: '기념일' },
 ];

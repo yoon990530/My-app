@@ -6,6 +6,7 @@ import Login from './pages/Login';
 import Home from './pages/Home';
 import Anniversary from './pages/Anniversary';
 import ChatPage from './pages/ChatPage';
+import StockNews from './pages/StockNews';
 
 function AppLayout({ children }) {
   return (
@@ -78,6 +79,16 @@ function AppRoutes() {
           <ProtectedRoute>
             <AppLayout>
               <ChatPage />
+            </AppLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/stock-news"
+        element={
+          <ProtectedRoute>
+            <AppLayout>
+              <StockNews />
             </AppLayout>
           </ProtectedRoute>
         }
