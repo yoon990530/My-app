@@ -4,6 +4,7 @@ import styles from './Sidebar.module.css';
 
 const NAV_ITEMS = [
   { to: '/', icon: '🏠', label: '홈 피드' },
+  { to: '/stock-news', icon: '📈', label: '주식 뉴스' },
   { to: '/anniversary', icon: '🎂', label: '기념일' },
 ];
 
